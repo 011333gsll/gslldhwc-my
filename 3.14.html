@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>古塔罗 · 单张占卜</title>
+    <style>
+        :root {
+            --bg: #0d0a0b;
+            --parchment: #f4e4c1;
+            --parchment-dark: #d4b896;
+            --gold: #b49450;
+            --gold-light: #d4b96a;
+            --blood: #8b3a3a;
+            --text: #2c2416;
+            --shadow: 0 0 30px rgba(180, 148, 80, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(ellipse at center, #1e1715 0%, #0a0706 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Georgia', 'Times New Roman', '宋体', serif;
+            padding: 20px;
+            background-attachment: fixed;
+        }
+
+        /* 羊皮纸纹理背景 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.02) 2px, rgba(0,0,0,0.02) 4px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* 标题装饰 */
+        .title-section {
+            margin-bottom: 2rem;
+        }
+        .title-section h1 {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            font-size: 2.4rem;
+            font-weight: normal;
+            letter-spacing: 0.3em;
+            color: var(--gold);
+            text-shadow: 0 0 15px rgba(180, 148, 80, 0.5);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: var(--gold-light);
+            opacity: 0.6;
+            margin: 8px 0;
+        }
+        .divider span {
+            font-size: 1.2rem;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            height: 1px;
+            width: 60px;
+            background: linear-gradient(to right, transparent, var(--gold-light), transparent);
+        }
+
+        /* 牌桌区域 */
+        .table {
+            position: relative;
+            width: 230px;
+            height: 360px;
+            margin: 0 auto 2rem;
+            perspective: 1200px;
+        }
+
+        /* 牌堆（多张叠放） */
+        .deck {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .deck:hover {
+            transform: translateY(-5px);
+        }
+        .deck:active {
+            transform: scale(0.96);
+        }
+
+        .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            background: #1a1020;
+            border: 3px solid #5e4a3a;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7), inset 0 0 30px rgba(180,148,80,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: 
+                radial-gradient(circle at 40% 40%, rgba(255,215,0,0.1) 0%, transparent 60%),
+                repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 3px, transparent 3px, transparent 10px);
+        }
+        /* 牌背中心的古老符号 */
+        .card-back::before {
+            content: '☉';
+            font-size: 4.5rem;
+            color: rgba(212, 168, 83, 0.7);
+            text-shadow: 0 0 25px #b8860b;
+            animation: flicker 2.5s infinite alternate;
+        }
+        @keyframes flicker {
+            0% { opacity: 0.7; text-shadow: 0 0 15px #b8860b; }
+            100% { opacity: 1; text-shadow: 0 0 30px #ffd700, 0 0 50px #b8860b; }
+        }
+
+        .deck .card-back:nth-child(1) { transform: translateY(0px) rotate(0deg); z-index: 3; }
+        .deck .card-back:nth-child(2) { transform: translateY(5px) rotate(1.5deg); z-index: 2; opacity: 0.85; }
+        .deck .card-back:nth-child(3) { transform: translateY(10px) rotate(-1.5deg); z-index: 1; opacity: 0.7; }
+
+        /* 抽出的牌（翻转容器） */
+        .drawn-card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.9s cubic-bezier(0.23, 1, 0.32, 1);
+            pointer-events: none;
+        }
+        .drawn-card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+        }
+
+        /* 正面牌面（古老羊皮纸风格） */
+        .card-front {
+            background: linear-gradient(135deg, #faf0d7 0%, #ecdcc0 100%);
+            border: 4px double #8b6f4c;
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 25px 20px;
+            text-align: center;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            position: relative;
+        }
+        .card-front::before {
+            content: '';
+            position: absolute;
+            top: 8px; left: 8px; right: 8px; bottom: 8px;
+            border: 1px solid rgba(139, 106, 76, 0.4);
+            pointer-events: none;
+        }
+
+        /* 逆位时内容倒转 */
+        .card-front.reversed-content {
+            transform: rotateY(180deg) rotate(180deg);
+        }
+
+        .card-symbol {
+            font-size: 3.8rem;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
+        }
+        .card-name {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #2c2416;
+            letter-spacing: 0.08em;
+            margin-bottom: 2px;
+        }
+        .card-roman {
+            font-size: 0.9rem;
+            color: #6b5a44;
+            letter-spacing: 0.2em;
+            margin-bottom: 10px;
+        }
+        .position-badge {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            font-size: 0.75rem;
+            background: #8b3a3a;
+            color: #f0dbb0;
+            padding: 3px 12px;
+            border-radius: 20px;
+            letter-spacing: 0.15em;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            text-transform: uppercase;
+        }
+
+        /* 解读区域（隐藏在牌面下部，抽牌后可滚动查看） */
+        .reading-box {
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #2c2416;
+            line-height: 1.6;
+            max-height: 90px;
+            overflow-y: auto;
+            padding: 0 5px;
+            border-top: 1px dashed #b49450;
+            padding-top: 8px;
+            text-align: left;
+            font-style: italic;
+            scrollbar-width: thin;
+            scrollbar-color: #b49450 #f4e4c1;
+        }
+        .reading-box::-webkit-scrollbar {
+            width: 4px;
+        }
+        .reading-box::-webkit-scrollbar-track {
+            background: #f4e4c1;
+        }
+        .reading-box::-webkit-scrollbar-thumb {
+            background: #b49450;
+            border-radius: 3px;
+        }
+
+        /* 背面（抽出的那张的背） */
+        .card-back-face {
+            background: #1a1020;
+            border: 3px solid #5e4a3a;
+            background-image: radial-gradient(circle at 40% 40%, rgba(255,215,0,0.1) 0%, transparent 60%),
+                repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 3px, transparent 3px, transparent 10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card-back-face::before {
+            content: '☉';
+            font-size: 4.5rem;
+            color: rgba(212, 168, 83, 0.7);
+        }
+
+        /* 按钮区 */
+        .controls {
+            display: flex;
+            gap: 18px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .btn {
+            background: transparent;
+            border: 2px solid var(--gold);
+            color: var(--gold-light);
+            padding: 10px 28px;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            letter-spacing: 0.12em;
+            transition: all 0.3s;
+            text-shadow: 0 0 8px rgba(180,148,80,0.4);
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(5px);
+            text-transform: uppercase;
+        }
+        .btn:hover {
+            background: rgba(180, 148, 80, 0.2);
+            box-shadow: 0 0 25px rgba(180,148,80,0.4);
+            border-color: #e6c468;
+            transform: translateY(-2px);
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .message {
+            color: #b49450;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            letter-spacing: 0.05em;
+            min-height: 24px;
+            font-style: italic;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 450px) {
+            .table { width: 190px; height: 300px; }
+            .card-symbol { font-size: 3rem; }
+            .card-name { font-size: 1.3rem; }
+            .title-section h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title-section">
+            <h1>古 塔 罗</h1>
+            <div class="divider"><span>☉</span></div>
+        </div>
+
+        <div class="table" id="tableArea">
+            <!-- 牌堆（未抽牌时可见） -->
+            <div class="deck" id="deckPile">
+                <div class="card-back"></div>
+                <div class="card-back"></div>
+                <div class="card-back"></div>
+            </div>
+
+            <!-- 抽出的牌（初始隐藏） -->
+            <div class="drawn-card" id="drawnCard" style="display: none;">
+                <div class="card-face card-back-face"></div>
+                <div class="card-face card-front" id="cardFront">
+                    <span class="position-badge" id="positionBadge"></span>
+                    <div class="card-symbol" id="cardSymbol"></div>
+                    <div class="card-name" id="cardName"></div>
+                    <div class="card-roman" id="cardRoman"></div>
+                    <div class="reading-box" id="cardReading"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="drawBtn">抽取圣牌</button>
+            <button class="btn" id="reshuffleBtn" style="display: none;">再次求问</button>
+        </div>
+        <div class="message" id="messageBox">静默你的心，触碰牌堆…</div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- 古老塔罗牌义库 ----------
+            const tarotDeck = [
+                // 大阿卡纳
+                { id:0, name:"愚者", roman:"0", symbol:"🌅", type:"major",
+                  upright:"一段全新的旅程即将展开，你站在悬崖边，内心充满纯粹的信任与好奇。无需过度计划，宇宙正托着你迈出那一步。这是冒险、天真与无限可能的开端。",
+                  reversed:"或许你正因害怕未知而裹足不前，或是冲动行事而忽略了脚下的风险。提醒自己，勇气不等于鲁莽，稍作停留审视内心，再决定是否跳跃。" },
+                { id:1, name:"魔术师", roman:"Ⅰ", symbol:"🪄", type:"major",
+                  upright:"此刻你手握所有需要的元素——意志、技巧与机遇。正如魔术师指向天地，你有能力将意念显化为现实。自信地行动，世界是你的舞台。",
+                  reversed:"你的力量正被分散，可能表现为欺骗、操控或缺乏专注。检查自己是否在滥用才华，或是否因自我怀疑而让能力沉睡。" },
+                { id:2, name:"女祭司", roman:"Ⅱ", symbol:"📖", type:"major",
+                  upright:"深入内在的静默吧，答案并不在外界，而在你潜意识的深处。信任直觉、梦境与反复出现的征兆。有些秘密只能在沉静中被领悟。",
+                  reversed:"你可能忽视了内心的声音，或过分依赖逻辑而压抑了情感。秘密可能被隐藏，或有人正对你保守关键信息。重新连接你的直觉。" },
+                { id:3, name:"皇后", roman:"Ⅲ", symbol:"👸", type:"major",
+                  upright:"丰饶、滋养与感官的满足正环绕着你。这是创造力开花结果的时刻，无论是孕育生命、艺术作品还是新的事业方向。允许自己享受自然的恩泽。",
+                  reversed:"你或许在过度依赖他人，或陷入物质享乐的困境中。创造力的源泉暂时干涸，需要回归内心，找回自我滋养的能力，而非向外索取。" },
+                { id:4, name:"皇帝", roman:"Ⅳ", symbol:"👑", type:"major",
+                  upright:"秩序、权威与坚定的结构是你的后盾。通过纪律和清晰的边界，你能建立稳固的王国。此刻需要以理性与领导力应对局面，成为自己的主宰。",
+                  reversed:"权威可能被滥用，或是你正感受到来自强权的压迫。内心缺乏纪律导致混乱，也可能表现为固执与独裁。重新审视权力在你生命中的意义。" },
+                { id:5, name:"教皇", roman:"Ⅴ", symbol:"✝️", type:"major",
+                  upright:"寻求智慧的指引，无论是来自传统、导师还是你内在的信仰体系。遵照既定的规则与仪式，你能获得精神上的认同与归属。这是学习与传递光亮的时刻。",
+                  reversed:"你正在挑战传统，或对教条式的灌输感到厌倦。也可能是陷入盲从，失去了独立思考。真正的信仰应带来自由，而非束缚。" },
+                { id:6, name:"恋人", roman:"Ⅵ", symbol:"❤️", type:"major",
+                  upright:"爱的选择摆在眼前，不仅关乎感情，更是价值观的校准。在结合中保持真实的自我，从坦诚的交流中诞生更深层的和谐。这是心与心的共鸣。",
+                  reversed:"分离、诱惑或价值观的冲突正在考验你。可能因恐惧亲密而推开真爱，或因错误的选择导致关系失衡。向内看，究竟什么才是你真正珍视的。" },
+                { id:7, name:"战车", roman:"Ⅶ", symbol:"🏆", type:"major",
+                  upright:"意志力是此刻制胜的关键。通过驾驭内在相反的力量，你便能突破障碍，一路向前。胜利在望，只要你不放弃对方向的掌控。",
+                  reversed:"失控、挫败或侵略性让你偏离了轨道。你可能用力过猛，或完全失去了斗志。停下来，检查你前进的方向是否真的由心而定。" },
+                { id:8, name:"力量", roman:"Ⅷ", symbol:"🦁", type:"major",
+                  upright:"真正的力量来自温柔与耐心。驯服内在的野兽并非靠蛮力，而是用理解与慈悲。你拥有以柔克刚的能力，用平静化解冲突。",
+                  reversed:"你正被恐惧或愤怒支配，内在的力量被扭曲为暴力或软弱。或许你正试图控制不可控之物。找回内心的平静，力量才会回归。" },
+                { id:9, name:"隐士", roman:"Ⅸ", symbol:"🏮", type:"major",
+                  upright:"退回到内在的殿堂，像隐士一般点亮手中明灯。这是寻求真理与自我认知的孤独旅程。不要害怕独处，寂静中自有启示降临。",
+                  reversed:"你可能在逃避必要的社交，或陷入过度的孤立与偏执。智慧被固执遮蔽，不愿接受外界的帮助。问问自己，这份孤独是滋养还是囚禁？" },
+                { id:10, name:"命运之轮", roman:"Ⅹ", symbol:"☸️", type:"major",
+                  upright:"命运的车轮正转向你有利的位置。惊喜、机遇与转变不期而至。顺应时势，接受宇宙的流转，你将升至新的阶段。",
+                  reversed:"时运不佳，或你正抗拒生命必然的改变。厄运的感觉并非永恒，但需要你认识到，有些循环该被打破，有些因果需要面对。" },
+                { id:11, name:"正义", roman:"Ⅺ", symbol:"⚖️", type:"major",
+                  upright:"真理与公正即将显现。法律、契约或因果法则将带来平衡。诚实地面对自己与他人，任何一个决定都需承担相应的责任。",
+                  reversed:"不公、偏见或逃避责任正造成失衡。事情可能未得到公正裁决，或你对自己过于严苛。审视是否隐藏了部分真相。" },
+                { id:12, name:"倒吊人", roman:"Ⅻ", symbol:"🙃", type:"major",
+                  upright:"以不同的视角看待世界吧，牺牲暂时的舒适，换来深刻的洞见。这是自愿的悬置，等待时机的艺术。臣服不是失败，而是另一种形式的胜利。",
+                  reversed:"你可能被卡在毫无意义的牺牲中，或抗拒着必要的视角转换。停滞不前，固执己见，使你无法看清更大的图景。放手，让新视野进来。" },
+                { id:13, name:"死神", roman:"ⅩⅢ", symbol:"💀", type:"major",
+                  upright:"一个阶段注定要结束，为新生腾出空间。这不是肉体的消亡，而是蜕变、彻底的转变。允许旧我剥落，你才能迎来重生。",
+                  reversed:"你正死死抓住行将朽烂的人事物，因恐惧终结而停滞不前。改变被延迟，但不会消失。接受流动，否则将被其拖垮。" },
+                { id:14, name:"节制", roman:"ⅩⅣ", symbol:"🌊", type:"major",
+                  upright:"调和矛盾，寻找中道。像炼金术士一样，将生活中的对立元素融合为更高的和谐。温柔地调适，耐心地平衡，一切自会恰到好处。",
+                  reversed:"失衡、过度或冲突正在消耗你。可能表现为放纵、急躁或无法兼容的拉扯。回归中心，找回生活的韵律。" },
+                { id:15, name:"恶魔", roman:"ⅩⅤ", symbol:"😈", type:"major",
+                  upright:"你正被物质的欲望、成瘾或有害的关系所束缚。讽刺的是，牢笼的门并未锁，你随时可以挣脱。看清那些困住你的锁链，它们多源于恐惧。",
+                  reversed:"挣脱与觉醒的时刻来临。你终于看穿了束缚的本质，开始打破恶习、有毒的关系。这是重获自由的契机。" },
+                { id:16, name:"高塔", roman:"ⅩⅥ", symbol:"🏚️", type:"major",
+                  upright:"旧有的结构在闪电中崩塌，尽管令人震惊，却是必要的清算。虚假的稳固无法长久，崩塌之后，真理的基石会暴露出来。",
+                  reversed:"你正竭尽全力阻止一场不可避免的崩塌，或正从废墟中缓慢恢复。恐惧改变只会延长痛苦。信任这个释放的过程。" },
+                { id:17, name:"星星", roman:"ⅩⅦ", symbol:"⭐", type:"major",
+                  upright:"希望如星光洒落，疗愈与宁静降临。暴风雨后，你已清洗了尘埃，现在可以赤诚地面对宇宙。接收这份纯净的灵感与信任。",
+                  reversed:"你感到希望渺茫，或对信仰产生了怀疑。灵感枯竭，陷入悲观。但请记住，星光并未消失，只是暂时被云层遮蔽。" },
+                { id:18, name:"月亮", roman:"ⅩⅧ", symbol:"🌙", type:"major",
+                  upright:"潜意识的水域泛起涟漪，恐惧、幻象与梦境交织。前路不明，但正是这种模糊引导你深入内心。不要相信表面，倾听直觉的低语。",
+                  reversed:"迷雾渐渐散开，真相即将显露。你正摆脱焦虑与混乱的梦境，看清了幻觉背后的实相。内心的平静逐渐恢复。" },
+                { id:19, name:"太阳", roman:"ⅩⅨ", symbol:"☀️", type:"major",
+                  upright:"喜悦、成功与充沛的生命力如日方中。这是纯粹的快乐与自信，你的光芒温暖四周，一切都清晰明朗。享受这份坦荡的成就。",
+                  reversed:"阳光暂时被遮挡，但你仍能感受到它的温暖。可能是延迟的满足，或过度的乐观让你忽略了细节。保持信心，阴云会散去。" },
+                { id:20, name:"审判", roman:"ⅩⅩ", symbol:"📯", type:"major",
+                  upright:"觉知的号角吹响，召唤你审视过往，清算业力。这是一个深刻的觉醒点，你被要求从更高层面理解生命的轨迹，然后起身回应。",
+                  reversed:"你正抗拒内心的召唤，无法放下过去或原谅自己。悔恨与批评让你充耳不闻。接纳所有，才能从审判中解脱。" },
+                { id:21, name:"世界", roman:"ⅩⅪ", symbol:"🌍", type:"major",
+                  upright:"一个重要的循环已完成，你站在圆满的中心，感受整合与成就。这是旅程的终点，亦是新循环的起点。宇宙在你心中，你即是完整。",
+                  reversed:"事情尚未圆满，或你感到了成就背后的空虚。可能有最后一步未完成，或是推迟了必然的终结。拥抱缺失，也是完整的一部分。" },
+                // 小阿卡纳 - 权杖组
+                { name:"权杖王牌", type:"wands", symbol:"🪵✨",
+                  upright:"一股强劲的创造之火被点燃。新的行动、灵感或事业的开端降临。跟随这股能量，无需犹豫，勇敢开启冒险。",
+                  reversed:"动力受阻，新的计划可能被延迟或缺乏热情。或许你还没有准备好，需要重新积聚内在的火种。" },
+                { name:"权杖二", type:"wands", symbol:"🌏",
+                  upright:"你手握权杖，眺望远方。此刻是规划未来、做出长远决策的时候。你有能力掌控自己的世界，选择前进的方向。",
+                  reversed:"对未来的恐惧让你裹足不前，或计划难以推进。过度的犹豫可能导致错失良机。重新审视你的目标。" },
+                { name:"权杖三", type:"wands", symbol:"⛵",
+                  upright:"你的计划已启航，向更广阔的天地拓展。远见与探索带来增长，贸易、旅行或传播是当下的主题。前方海阔天空。",
+                  reversed:"计划受阻，或对未知的恐惧让你撤回投入。失望可能源于期待过高。检查你的船只是否真的准备好了。" },
+                { name:"权杖四", type:"wands", symbol:"🏡",
+                  upright:"欢庆与安定的时刻。根基稳固，和谐圆满，适合庆祝成就、建立家庭或举办仪式。感受那份踏实的喜悦。",
+                  reversed:"家庭或团队内部出现不和谐，暂时的动荡动摇了你的安全感。可能是搬迁延误或庆祝活动不欢而散。找回内在的稳定。" },
+                { name:"权杖五", type:"wands", symbol:"⚔️",
+                  upright:"竞争与冲突浮现，众人各有主张，混乱中火花四溅。这种挑战能激发你的潜力，参与进去，但勿陷入无意义的争斗。",
+                  reversed:"寻求和解，避免正面冲突。内部的争吵可能平息，但也可能演变为更隐蔽的对抗。找到共识是关键。" },
+                { name:"权杖六", type:"wands", symbol:"🏅",
+                  upright:"胜利的游行，你因努力获得认可与掌声。进展顺利，成功在望，众人追随你的领导。享受这份荣耀，但保持谦逊。",
+                  reversed:"失败或骄傲导致众叛亲离。自信沦为自大，他人的认可迟迟不来。检视自己是否过于张扬，或失去了团队的支持。" },
+                { name:"权杖七", type:"wands", symbol:"🛡️",
+                  upright:"你站在高处，抵御众多挑战。这需要坚持与勇气，尽管压力重重，你仍有力量守住自己的位置。不要放弃。",
+                  reversed:"你感到力不从心，被压垮，准备放弃抵抗。也许是时候评估，哪些战斗值得打，哪些可以放手。" },
+                { name:"权杖八", type:"wands", symbol:"💨",
+                  upright:"事物飞速前进，讯息、旅行与行动接踵而至。阻力消失，目标清晰，一切如箭离弦。顺势而为，抓住这股动能。",
+                  reversed:"行动延误，消息混乱，事情停滞不前。箭矢偏离目标。耐心些，等待能量重新校准，勿仓促行事。" },
+                { name:"权杖九", type:"wands", symbol:"🦯",
+                  upright:"你已历经战斗，带着伤痕但仍保持警觉。最后的坚持需要韧性，守住成果，不要松懈。你比想象中更强大。",
+                  reversed:"固执与偏执使你无法放手。过度防守，疑神疑鬼，精力耗尽。问问自己，这场保卫战是否值得继续。" },
+                { name:"权杖十", type:"wands", symbol:"🏋️",
+                  upright:"你背负了过多的责任与负担，压力山大。但这也预示着收获在即。想想，哪些可以分派，哪些可以放下。",
+                  reversed:"释放重负的时刻来临。你再也无力承担，必须学会拒绝或寻求帮助。放下，才能走得更远。" },
+                { name:"权杖侍从", type:"wands", symbol:"🧑‍🎤",
+                  upright:"一个充满热忱的消息或新计划即将出现。保持探索的心，像孩童般对世界好奇。这是学习的阶段，勇敢表达自己。",
+                  reversed:"坏消息或缺乏计划的冲动行动。你可能因三分钟热度而半途而废。沉淀下来，想清楚再行动。" },
+                { name:"权杖骑士", type:"wands", symbol:"🏇",
+                  upright:"行动迅猛，充满激情与冒险精神。你带着改变的力量闯入新局面。快速反应，但别忘了方向。",
+                  reversed:"鲁莽、急躁导致失控，或行动被严重拖延。你或因冲动而闯入麻烦。减速，看清路再疾驰。" },
+                { name:"权杖王后", type:"wands", symbol:"👩‍🦰",
+                  upright:"热情、独立与自信是此刻的基调。你以温暖的领导力吸引他人，内心充满创造的火焰。做自己王国的主宰。",
+                  reversed:"嫉妒、自我中心或疲惫消磨了你的热情。你可能在人际关系中过度强势。重新点燃内在的快乐，而非控制外在。" },
+                { name:"权杖国王", type:"wands", symbol:"👨‍🦰",
+                  upright:"成熟的领导力，远见与创业精神。你以诚信和大胆的行动建立事业。这是承担责任、引导方向的时刻。",
+                  reversed:"专横、冲动或滥用权力。你可能成为一个严苛的独裁者，或遭遇这样的权威。检视你对权力的使用。" },
+                // 圣杯组
+                { name:"圣杯王牌", type:"cups", symbol:"🍷✨",
+                  upright:"爱的杯盏满溢，新的情感、关系或灵性启示涌现。这是内心喜悦与慈悲的开端。允许自己去感受，去接纳。",
+                  reversed:"情感空虚，爱被阻塞或流失。你可能关闭了心扉，或新恋情无果而终。重新学习如何给予和接受爱。" },
+                { name:"圣杯二", type:"cups", symbol:"💑",
+                  upright:"平等的联结，两颗心的共鸣。恋人、伙伴或挚友间的关系深化，沟通顺畅。这是相互尊重与吸引的和谐状态。",
+                  reversed:"关系失衡，分离或信任破裂。付出与回报不再相等，争执浮现。重新建立平等的对话。" },
+                { name:"圣杯三", type:"cups", symbol:"🥂",
+                  upright:"欢庆友谊与团体联结。聚会、分享与轻松的氛围带来愉悦。这是情感支持与归属感的体现，享受这份温暖。",
+                  reversed:"过度放纵导致疲惫，或被朋友孤立。团体的欢愉流于表面，隐藏着不和。注意平衡社交与自我照顾。" },
+                { name:"圣杯四", type:"cups", symbol:"😴",
+                  upright:"你沉浸在自己的世界里，对眼前的机会感到厌倦或不满。静坐沉思，但不要错过云端递来的新杯盏。",
+                  reversed:"新动力注入，你终于摆脱麻木，看到了新的可能性。抓住那个迟来的机会，重新投入生活。" },
+                { name:"圣杯五", type:"cups", symbol:"😢",
+                  upright:"你为倾洒的杯子而悲伤，却忽略了身后依然完好站立的两只。失落是真实的，但希望并未消失。转向它。",
+                  reversed:"接受现实，从悲伤中恢复。你开始看到那条通往未来的桥。原谅与释怀是疗愈的开始。" },
+                { name:"圣杯六", type:"cups", symbol:"🌼",
+                  upright:"纯真的回忆、往昔的重逢或童年的馈赠。你被一种怀旧的温暖包围。可以是善意的给予，也可能是对安全感的依恋。",
+                  reversed:"沉溺于过去而无法前行，被旧有的羁绊束缚。你或许需要切断与往昔不健康的联系，活在当下。" },
+                { name:"圣杯七", type:"cups", symbol:"🎆",
+                  upright:"幻境、选择过多与白日梦。你面对众多诱人的选项，但多数是泡影。需要落地，看清哪项才是你真正的渴望。",
+                  reversed:"清晰与决断。迷雾散去，你终于看穿诱惑，做出明智的选择。不再被幻象迷惑，找到真实的路。" },
+                { name:"圣杯八", type:"cups", symbol:"🚶",
+                  upright:"离开熟悉的环境，踏上追寻更高意义的旅程。尽管有所留恋，但你明白旧有的情感模式已无法满足。出发吧。",
+                  reversed:"恐惧改变，导致你滞留于不满意的境遇中。或是在旅途中感到迷失。相信内心的向导。" },
+                { name:"圣杯九", type:"cups", symbol:"😌",
+                  upright:"愿望达成，情感与物质上的满足。你实现了渴望，享受着独属自己的丰富。这是自信与内在充实的时刻。",
+                  reversed:"贪婪或不满，即使拥有了许多，仍感觉空虚。可能因过度追求物质而忽略了真正的内心需求。" },
+                { name:"圣杯十", type:"cups", symbol:"🌈",
+                  upright:"情感圆满，家庭和谐，爱与幸福如彩虹般环绕。这是归属与终极的情感安全。感恩这份赐福。",
+                  reversed:"家庭破裂，理想破灭。和谐是表面的，或你与家人存在深层隔阂。重新定义对幸福的理解。" },
+                { name:"圣杯侍从", type:"cups", symbol:"🧒",
+                  upright:"直觉带来好消息，创意灵感涌动。一颗开放、好奇的心，乐于探索情感世界。可能是一位传递爱的信使。",
+                  reversed:"情感不成熟，坏消息，或过于梦幻而脱离现实。你或你的内在小孩需要被看见和安抚。" },
+                { name:"圣杯骑士", type:"cups", symbol:"🐴",
+                  upright:"浪漫的邀请，白马王子般的追求者或充满魅力的提议。你被美好的情感所吸引。追随内心，但要看清本质。",
+                  reversed:"虚伪的调情，情感的欺骗。表面美好的事物下隐藏着不稳定。不要被甜言蜜语迷惑。" },
+                { name:"圣杯王后", type:"cups", symbol:"👩‍🦳",
+                  upright:"温柔的同理心，深度的情感理解与照顾。你像一位慈爱的母亲，滋养着周围的世界。信任直觉与爱。",
+                  reversed:"过度依赖，情绪化，或陷入牺牲者角色。你的关怀可能变成控制。设立健康的边界。" },
+                { name:"圣杯国王", type:"cups", symbol:"👨‍🦳",
+                  upright:"成熟的情感智慧，宽容与艺术气息。你能在风暴中保持内心的平静，并用慈悲领导他人。是情感平衡的象征。",
+                  reversed:"情绪勒索，操纵，或压抑真实感受。外表平静，内心却暗流涌动。诚实地面对情绪，勿沦为控制者。" },
+                // 宝剑组
+                { name:"宝剑王牌", type:"swords", symbol:"⚔️✨",
+                  upright:"真理的利刃劈开迷雾，清晰的思绪与突破性洞见涌现。这是理智的胜利，决心已定。运用逻辑与公正。",
+                  reversed:"混乱的思维，残忍的言语。真理被扭曲，或你被愤怒冲昏了头脑。谨慎使用你的语言。" },
+                { name:"宝剑二", type:"swords", symbol:"🤐",
+                  upright:"僵局与回避。你蒙着眼睛，手握双刃剑，拒绝看到真相。内心分裂，需要做出选择，但暂时不愿面对。",
+                  reversed:"揭露事实，打破僵局。你终于睁开眼睛，做出决定。信息的释放带来解脱。" },
+                { name:"宝剑三", type:"swords", symbol:"💔",
+                  upright:"心碎、悲伤与分离。三把利剑穿透心脏，痛苦清晰而深刻。允许自己去感受这份悲伤，它是疗愈的开始。",
+                  reversed:"从伤痛中恢复，释怀与原谅。你已走过最艰难的阶段，正在重新整合自己。痛苦在消退。" },
+                { name:"宝剑四", type:"swords", symbol:"🛌",
+                  upright:"休息与撤退。你躺在静谧之处，需要时间沉思、恢复精力。暂停战斗，让身心复原。",
+                  reversed:"焦躁不安，过早复出。你可能还没有准备好就重新投入战场，导致二次伤害。多给自己一些时间。" },
+                { name:"宝剑五", type:"swords", symbol:"😤",
+                  upright:"冲突与空荡的胜利。你赢得了争斗，却失去了人心。这把胜利沾满苦涩。思考，是否值得。",
+                  reversed:"和解与妥协。你选择放下武器，寻求和平。过去的冲突可能被修复。放下骄傲。" },
+                { name:"宝剑六", type:"swords", symbol:"🛶",
+                  upright:"渡过情绪的苦海，驶向平静的彼岸。尽管悲伤仍在，但你正带着希望前行。过渡期，坚持住。",
+                  reversed:"你拒绝离开痛苦的水域，沉溺于伤痛。或暂时无法前进。接受援助，推动那艘船。" },
+                { name:"宝剑七", type:"swords", symbol:"🦊",
+                  upright:"策略与狡黠，你悄悄拿走不属于你的东西。需要机智与独立的行动，但也要小心暴露的风险。",
+                  reversed:"计谋被揭穿，聪明反被聪明误。隐藏的真相浮现，你需要为过去的行为负责。" },
+                { name:"宝剑八", type:"swords", symbol:"🕸️",
+                  upright:"自我设限的囚笼，你被恐惧和思想捆绑，但实际上四周的剑并未真正困住你。觉醒，你随时能挣脱。",
+                  reversed:"释放与新的视角。你终于看清束缚的本质，勇敢地走出困境。自由源自内在的转变。" },
+                { name:"宝剑九", type:"swords", symbol:"😰",
+                  upright:"深夜的焦虑、噩梦与内疚折磨着你。这些多为思绪所造，却真实地带来痛苦。寻求帮助，说出来。",
+                  reversed:"释怀与求助。你开始摆脱内疚和恐惧，光明照进黑暗。噩梦正在消散。" },
+                { name:"宝剑十", type:"swords", symbol:"🪦",
+                  upright:"终结与谷底。十把剑穿透背部，看似绝望。但黎明就在前方，无法再坏的时刻，只能向上重生。",
+                  reversed:"复苏的一线希望。你从毁灭中爬起来，开始重建。最糟糕的已经过去，接受教训，继续前行。" },
+                { name:"宝剑侍从", type:"swords", symbol:"🕵️",
+                  upright:"敏锐的好奇心，消息的收集者。你保持警惕，乐于沟通与学习。可能涉及调查或分析。",
+                  reversed:"流言蜚语，缺乏计划的行动。你可能被不实消息误导，或过于多疑。核实信息。" },
+                { name:"宝剑骑士", type:"swords", symbol:"⚡",
+                  upright:"迅捷的变革与决心，如风暴般席卷而来。你带着绝对的理由冲锋。这是需要快速果断的时刻。",
+                  reversed:"冲动的破坏，缺乏耐心导致的错误。你的言语或行动可能伤及无辜。减速，三思而行。" },
+                { name:"宝剑王后", type:"swords", symbol:"👩‍⚖️",
+                  upright:"清晰的洞察力，独立与明确的边界。你以冷静的头脑分析一切，不受情感左右。是智慧的仲裁者。",
+                  reversed:"刻薄、冷漠或心怀怨恨。你的理性变成了武器，伤害了亲近的人。试着用同理心调和判断。" },
+                { name:"宝剑国王", type:"swords", symbol:"👨‍⚖️",
+                  upright:"至高的理性与公正，用逻辑和法律进行统治。你拥有强大的分析能力与决断力，能客观解决难题。",
+                  reversed:"操控与残酷的独裁者。滥用智力优势，或遭遇不公的权威。权力需要道德的驾驭。" },
+                // 星币组
+                { name:"星币王牌", type:"pentacles", symbol:"🪙✨",
+                  upright:"坚实的机遇，财富或新事业的种子被赐予。这是物质世界繁荣的开端，把握住，它会长成参天大树。",
+                  reversed:"错失良机，贪婪或投资失利。你或许因过于保守或准备不足而抓不住财富。重新评估物质计划。" },
+                { name:"星币二", type:"pentacles", symbol:"🤹",
+                  upright:"平衡多重事务，在变动中保持灵活。如杂耍者，你在有限资源中巧妙周旋。适应是当下的关键。",
+                  reversed:"失衡与超载，你已无法维持手头所有的球。财务紧张，需做出取舍，否则一切都会掉落。" },
+                { name:"星币三", type:"pentacles", symbol:"🏗️",
+                  upright:"团队合作、精湛技艺与成长。你正与同道中人构建宏伟蓝图。专注细节，集体努力带来成功。",
+                  reversed:"团队不协调，工作质量下降，或缺乏合作。可能需要重新评估分工或提升技能。" },
+                { name:"星币四", type:"pentacles", symbol:"💰",
+                  upright:"紧紧守住财富与资源，寻求安全感。这带来稳定，但也可能转为吝啬与控制。适度开放，让能量流动。",
+                  reversed:"放手，或过度浪费。你终于松开紧握的手，但也可能陷入挥霍无度的另一极端。寻找平衡。" },
+                { name:"星币五", type:"pentacles", symbol:"🥶",
+                  upright:"匮乏与孤立，你感到被排斥在温暖与丰盛之外。但内在的光明从未消失，转机就在转身处。",
+                  reversed:"转机到来，援助与温暖回归。你找到了精神的归宿或物质的支持。困境正在消散。" },
+                { name:"星币六", type:"pentacles", symbol:"🤲",
+                  upright:"给予与接受的平衡，慈善与公平的分配。你处于给予者或接收者的位置，请带着善意行使这份权力。",
+                  reversed:"不平等，施舍带着傲慢，或被人剥削。检查关系中是否存在不公的付出与索取。" },
+                { name:"星币七", type:"pentacles", symbol:"🌱",
+                  upright:"耐心等待收成，评估已付出的努力。你站在成长的作物前，思考下一步。这是回顾与调整的时期。",
+                  reversed:"焦虑，收成不如预期，或付出的努力未见回报。考虑是否方向有误，及时调整。" },
+                { name:"星币八", type:"pentacles", symbol:"🔨",
+                  upright:"勤奋与专注，技艺的精进。你日复一日地敲打，磨练出精湛的技能。投入带来实质的成果。",
+                  reversed:"粗制滥造，倦怠，或缺乏动力。工作变得机械无趣，品质下滑。重新注入热情。" },
+                { name:"星币九", type:"pentacles", symbol:"🦚",
+                  upright:"优雅的富足与独立。你享受着辛勤换来的果实，环境优渥，自我价值感高。这是对自己努力的奖赏。",
+                  reversed:"表面的光鲜，内在的不安全感。你依赖物质来定义价值，却感到了空虚。找回真正的自我认同。" },
+                { name:"星币十", type:"pentacles", symbol:"🏰",
+                  upright:"家族传承，稳固的家业与长期的繁荣。这不仅仅是金钱，还有血脉与文化的延续。感受世代的力量。",
+                  reversed:"家族纷争，遗产问题，或家道中落。物质虽在，精神纽带却断裂了。重新连接根脉。" },
+                { name:"星币侍从", type:"pentacles", symbol:"📚",
+                  upright:"务实的学习，新的财务机会或技能的萌芽。你手握星币，专注而认真。这是打好基础的阶段。",
+                  reversed:"懈怠，坏消息，或学习停滞。你可能因缺乏耐心而错失成长的机会。回归基本功。" },
+                { name:"星币骑士", type:"pentacles", symbol:"🐂",
+                  upright:"勤勉可靠，稳健地朝着目标前进。虽慢，但每一步都坚实。责任与毅力是你的标志。",
+                  reversed:"停滞，顽固，或责任感变成负担。你动弹不得，因为太害怕改变。试着灵活一些。" },
+                { name:"星币王后", type:"pentacles", symbol:"👩‍🌾",
+                  upright:"务实而慷慨的滋养者，懂得如何让物质世界丰盛。她照顾身体与家园，是财务安全的守护者。",
+                  reversed:"忽视，物质主义，或过分追求舒适。你的安全感可能建立在对环境的过度控制上。回归自然与信任。" },
+                { name:"星币国王", type:"pentacles", symbol:"👨‍🌾",
+                  upright:"财富与稳健的商业头脑，成功的成熟企业家。你通过勤奋与守信建立了帝国。享受丰收，也回馈社群。",
+                  reversed:"贪婪，守财奴，或为富不仁。对物质的欲望让你失去了对人性与道德的关注。分享，才能更富足。" }
+            ];
+
+            // DOM 元素
+            const deckPile = document.getElementById('deckPile');
+            const drawnCard = document.getElementById('drawnCard');
+            const cardFront = document.getElementById('cardFront');
+            const cardSymbol = document.getElementById('cardSymbol');
+            const cardName = document.getElementById('cardName');
+            const cardRoman = document.getElementById('cardRoman');
+            const cardReading = document.getElementById('cardReading');
+            const positionBadge = document.getElementById('positionBadge');
+            const messageBox = document.getElementById('messageBox');
+            const drawBtn = document.getElementById('drawBtn');
+            const reshuffleBtn = document.getElementById('reshuffleBtn');
+
+            let isCardDrawn = false;
+            let currentCardData = null;
+            let isReversed = false;
+
+            // 随机抽取
+            function drawRandomCard() {
+                return tarotDeck[Math.floor(Math.random() * tarotDeck.length)];
+            }
+            function randomReversed() {
+                return Math.random() < 0.5;
+            }
+
+            // 重置
+            function resetToDeck() {
+                drawnCard.style.display = 'none';
+                drawnCard.classList.remove('flipped');
+                deckPile.style.display = 'block';
+                isCardDrawn = false;
+                currentCardData = null;
+                drawBtn.style.display = 'inline-block';
+                reshuffleBtn.style.display = 'none';
+                messageBox.textContent = '静默你的心，触碰牌堆…';
+                cardFront.classList.remove('reversed-content');
+            }
+
+            // 抽牌并展示
+            function performDraw() {
+                if (isCardDrawn) return;
+
+                const card = drawRandomCard();
+                const reversed = randomReversed();
+                currentCardData = card;
+                isReversed = reversed;
+
+                // 填入内容
+                cardSymbol.textContent = card.symbol || '🃏';
+                cardName.textContent = card.name;
+                if (card.roman) {
+                    cardRoman.textContent = card.roman;
+                    cardRoman.style.display = 'block';
+                } else {
+                    cardRoman.textContent = '';
+                    cardRoman.style.display = 'none';
+                }
+                const readingText = reversed ? card.reversed : card.upright;
+                cardReading.textContent = readingText;
+                positionBadge.textContent = reversed ? '逆位' : '正位';
+
+                if (reversed) {
+                    cardFront.classList.add('reversed-content');
+                } else {
+                    cardFront.classList.remove('reversed-content');
+                }
+
+                deckPile.style.display = 'none';
+                drawnCard.style.display = 'block';
+                void drawnCard.offsetWidth;
+                drawnCard.classList.add('flipped');
+
+                isCardDrawn = true;
+                drawBtn.style.display = 'none';
+                reshuffleBtn.style.display = 'inline-block';
+                messageBox.textContent = `「${card.name}」${reversed ? '逆位' : '正位'}已显现 — 默观其义`;
+            }
+
+            // 事件
+            deckPile.addEventListener('click', performDraw);
+            drawBtn.addEventListener('click', performDraw);
+            reshuffleBtn.addEventListener('click', resetToDeck);
+
+            // 初始状态
+            resetToDeck();
+        })();
+    </script>
+</body>
+</html>
