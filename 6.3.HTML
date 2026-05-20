@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=1.5">
+    <title>今日食运 · 抽牌定食</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #2d1b0e 0%, #4a3220 40%, #1f1308 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Noto Serif SC', '华文楷体', 'KaiTi', '楷体', 'Georgia', serif;
+            padding: 20px;
+            margin: 0;
+            position: relative;
+        }
+
+        /* 木质桌面纹理效果 */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 30% 40%, rgba(210, 160, 100, 0.15) 0%, rgba(70, 35, 15, 0.5) 90%),
+                repeating-linear-gradient(45deg, rgba(120, 70, 30, 0.08) 0px, rgba(120, 70, 30, 0.08) 2px, transparent 2px, transparent 6px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .card-table {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 680px;
+            background: rgba(28, 18, 10, 0.75);
+            backdrop-filter: blur(24px);
+            border-radius: 68px;
+            padding: 30px 25px 40px;
+            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.7), inset 0 2px 8px rgba(255, 215, 150, 0.4), 0 0 0 2px rgba(190, 140, 80, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        h1 {
+            font-size: 2.9rem;
+            font-weight: 500;
+            letter-spacing: 8px;
+            color: #f9e7c2;
+            text-shadow: 0 6px 10px #00000050, 0 2px 0 #6b4a2c;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-family: "华文楷体", "KaiTi", "Noto Serif SC", serif;
+        }
+        h1 span {
+            font-size: 2.5rem;
+            filter: drop-shadow(0 6px 6px black);
+        }
+
+        .card-area {
+            background: #fcf3e0;
+            background-image: linear-gradient(135deg, #f7ecce 0%, #f2deb8 100%);
+            width: 100%;
+            aspect-ratio: 1 / 1.2;
+            max-width: 380px;
+            border-radius: 42px;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.3), 0 24px 35px rgba(0, 0, 0, 0.7), 0 0 0 6px #caa87b, 0 0 0 10px #4d3820;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 12px 0 25px;
+            padding: 20px;
+            position: relative;
+            transition: transform 0.25s ease;
+            cursor: pointer;
+            color: #3e2c18;
+        }
+        .card-area:active {
+            transform: scale(0.98);
+        }
+
+        .card-emoji {
+            font-size: 7rem;
+            line-height: 1;
+            filter: drop-shadow(0 12px 10px rgba(0, 0, 0, 0.45));
+            margin-bottom: 8px;
+            transition: 0.2s;
+        }
+
+        .food-name {
+            font-size: 3.2rem;
+            font-weight: bold;
+            color: #4b2f14;
+            text-shadow: 2px 2px 0 rgba(255, 245, 200, 0.9);
+            letter-spacing: 4px;
+            margin: 5px 0;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        .example-box {
+            background: rgba(60, 35, 15, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 60px;
+            padding: 12px 24px;
+            margin-top: 8px;
+            border: 1px solid #dba964;
+            color: #fae3be;
+            font-size: 1.15rem;
+            font-weight: 400;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-align: center;
+        }
+        .example-label {
+            font-weight: bold;
+            color: #ffd78b;
+            margin-right: 4px;
+        }
+        .example-food {
+            background: #e7b567;
+            color: #2b1a07;
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .draw-btn {
+            background: radial-gradient(circle at 30% 20%, #fddf9e, #c5832d);
+            border: none;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2f1d08;
+            padding: 16px 45px;
+            border-radius: 80px;
+            letter-spacing: 6px;
+            box-shadow: 0 12px 0 #6b3f18, 0 18px 30px rgba(0, 0, 0, 0.5), 0 0 15px #f3b95b;
+            cursor: pointer;
+            transition: all 0.08s linear;
+            margin: 15px 0 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 2px solid #ffe3a5;
+            text-shadow: 1px 1px 0 white;
+            font-family: inherit;
+        }
+        .draw-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 6px 0 #5a3718, 0 12px 25px rgba(0, 0, 0, 0.6);
+        }
+
+        .tag-row {
+            display: flex;
+            gap: 12px;
+            margin: 12px 0 5px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .tag {
+            background: #b6905c;
+            color: #1f1407;
+            padding: 5px 17px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            background: #edd5a8;
+            box-shadow: inset 0 1px 5px white;
+        }
+
+        .instruction {
+            color: #c9af82;
+            margin-top: 10px;
+            font-style: italic;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 450px) {
+            .card-table {
+                padding: 20px 18px 30px;
+            }
+            .food-name {
+                font-size: 2.4rem;
+            }
+            .card-emoji {
+                font-size: 5.5rem;
+            }
+            .draw-btn {
+                font-size: 1.6rem;
+                padding: 12px 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card-table">
+        <h1>
+            <span>🍽️</span> 食运签 <span>🥢</span>
+        </h1>
+
+        <!-- 抽牌卡片展示区 -->
+        <div class="card-area" id="cardArea">
+            <div class="card-emoji" id="cardEmoji">🎴</div>
+            <div class="food-name" id="foodName">抽牌定食</div>
+            <div class="example-box" id="exampleBox">
+                <span class="example-label">📌 代表菜：</span>
+                <span class="example-food" id="exampleFood">???</span>
+            </div>
+            <div class="tag-row" id="tagRow">
+                <span class="tag" id="categoryTag">✨ 未知</span>
+            </div>
+        </div>
+
+        <!-- 抽牌按钮 -->
+        <button class="draw-btn" id="drawButton">
+            🀄️ 抽 牌 <span style="font-size:1.8rem;">🎲</span>
+        </button>
+        <div class="instruction">
+            ⚡ 抽到什么食材，今天就必须吃含有它的食物
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- 丰富食材库：奇葩+正常，种类多样化 ----------
+            const ingredients = [
+                // 水果类 (奇葩与正常混合)
+                { name: "榴莲", emoji: "🫒", category: "水果·奇葩", examples: ["榴莲披萨", "榴莲千层", "榴莲炖鸡"], color: "#b59d4b" },
+                { name: "牛油果", emoji: "🥑", category: "水果·健康", examples: ["牛油果吐司", "牛油果沙拉", "牛油果奶昔"], color: "#6b8c42" },
+                { name: "菠萝", emoji: "🍍", category: "水果·热带", examples: ["菠萝炒饭", "菠萝咕咾肉", "菠萝披萨"], color: "#d67e2a" },
+                { name: "芒果", emoji: "🥭", category: "水果·甜美", examples: ["芒果糯米饭", "芒果布丁", "芒果虾仁"], color: "#f5a338" },
+                { name: "柠檬", emoji: "🍋", category: "水果·酸爽", examples: ["柠檬鱼", "柠檬鸡爪", "柠檬挞"], color: "#f5e56c" },
+                { name: "百香果", emoji: "🍈", category: "水果·奇葩", examples: ["百香果柠檬虾", "百香果排骨", "百香果莫吉托"], color: "#b0844c" },
+                { name: "椰子", emoji: "🥥", category: "水果·热带", examples: ["椰子鸡", "椰子饭", "椰子冻"], color: "#8b6b4b" },
+                { name: "无花果", emoji: "🫐", category: "水果·小众", examples: ["无花果火腿", "无花果沙拉", "无花果酱烤面包"], color: "#7a4f6e" },
+
+                // 蔬菜/菌菇/特殊植物
+                { name: "香菜", emoji: "🌿", category: "蔬菜·争议", examples: ["香菜牛肉", "香菜拌豆干", "香菜冰淇淋"], color: "#3f7840" },
+                { name: "折耳根", emoji: "🍃", category: "蔬菜·奇葩", examples: ["折耳根拌黄瓜", "折耳根炒腊肉", "折耳根蘸水"], color: "#5d7840" },
+                { name: "苦瓜", emoji: "🥒", category: "蔬菜·清苦", examples: ["苦瓜炒蛋", "苦瓜酿肉", "苦瓜柠檬茶"], color: "#4f7942" },
+                { name: "秋葵", emoji: "🫛", category: "蔬菜·黏滑", examples: ["秋葵刺身", "秋葵天妇罗", "秋葵蒸蛋"], color: "#5a7844" },
+                { name: "木耳", emoji: "🍄", category: "菌菇·山珍", examples: ["木耳炒肉", "凉拌木耳", "木耳豆腐汤"], color: "#3f3630" },
+                { name: "金针菇", emoji: "🍄‍🟫", category: "菌菇·常见", examples: ["金针菇肥牛", "蒜蓉金针菇", "金针菇培根卷"], color: "#c4a56c" },
+                { name: "竹笋", emoji: "🎍", category: "蔬菜·时令", examples: ["腌笃鲜", "油焖笋", "竹笋炒肉"], color: "#b9a67c" },
+                { name: "紫苏", emoji: "🌱", category: "香草·特别", examples: ["紫苏黄瓜", "紫苏炖鱼", "紫苏桃子"], color: "#6e4b5e" },
+
+                // 肉类/蛋白质 (奇葩部位或种类)
+                { name: "猪蹄", emoji: "🐷", category: "肉类·胶原", examples: ["红烧猪蹄", "猪蹄汤", "香辣烤猪蹄"], color: "#b55a4c" },
+                { name: "鸡爪", emoji: "🐔", category: "肉类·小吃", examples: ["虎皮凤爪", "泡椒凤爪", "豉汁蒸凤爪"], color: "#d99b4c" },
+                { name: "猪脑", emoji: "🧠", category: "肉类·奇葩", examples: ["猪脑火锅", "烤猪脑", "猪脑蒸蛋"], color: "#d49b8c" },
+                { name: "肥肠", emoji: "🐽", category: "肉类·重口", examples: ["干煸肥肠", "肥肠面", "九转大肠"], color: "#b87452" },
+                { name: "鸭血", emoji: "🦆", category: "肉类·滑嫩", examples: ["鸭血粉丝汤", "毛血旺", "韭菜炒鸭血"], color: "#8c2e3b" },
+                { name: "羊肉", emoji: "🐑", category: "肉类·温补", examples: ["羊肉串", "羊肉泡馍", "葱爆羊肉"], color: "#b5654b" },
+                { name: "牛蛙", emoji: "🐸", category: "肉类·鲜嫩", examples: ["干锅牛蛙", "泡椒牛蛙", "牛蛙火锅"], color: "#718c5a" },
+                { name: "鸽子", emoji: "🕊️", category: "肉类·滋补", examples: ["烤乳鸽", "鸽子汤", "卤水鸽"], color: "#8b7b6b" },
+
+                // 海鲜/水产
+                { name: "鱿鱼", emoji: "🦑", category: "海鲜·弹牙", examples: ["铁板鱿鱼", "鱿鱼圈", "鱿鱼炒韭菜"], color: "#d98c7a" },
+                { name: "蛤蜊", emoji: "🐚", category: "海鲜·鲜美", examples: ["蛤蜊蒸蛋", "辣炒蛤蜊", "蛤蜊意面"], color: "#b8a58b" },
+                { name: "海胆", emoji: "🔴", category: "海鲜·奢华", examples: ["海胆蒸蛋", "海胆寿司", "海胆炒饭"], color: "#e86f3c" },
+                { name: "蟹", emoji: "🦀", category: "海鲜·硬壳", examples: ["清蒸大闸蟹", "香辣蟹", "蟹粉豆腐"], color: "#d15b3b" },
+                { name: "虾", emoji: "🦐", category: "海鲜·经典", examples: ["油焖大虾", "虾饺", "蒜蓉开背虾"], color: "#f08a5c" },
+                { name: "螺蛳", emoji: "🐌", category: "水产·奇葩", examples: ["螺蛳粉", "炒螺蛳", "螺蛳鸡"], color: "#6f5e47" },
+
+                // 豆制品/谷物/特殊食材
+                { name: "豆腐", emoji: "🧈", category: "豆制品·百搭", examples: ["麻婆豆腐", "小葱拌豆腐", "豆腐脑"], color: "#f5e7c6" },
+                { name: "纳豆", emoji: "🫘", category: "豆制品·奇葩", examples: ["纳豆拌饭", "纳豆秋葵", "纳豆寿司"], color: "#9c7b4b" },
+                { name: "芝士", emoji: "🧀", category: "乳制品·浓郁", examples: ["芝士焗饭", "芝士汉堡", "芝士火锅"], color: "#f5c542" },
+                { name: "皮蛋", emoji: "🥚", category: "蛋类·奇葩", examples: ["皮蛋豆腐", "皮蛋瘦肉粥", "擂椒皮蛋"], color: "#3b4a3b" },
+                { name: "咸蛋黄", emoji: "🍳", category: "蛋类·网红", examples: ["咸蛋黄鸡翅", "咸蛋黄南瓜", "咸蛋黄炒饭"], color: "#f0a030" },
+                { name: "蚕蛹", emoji: "🐛", category: "虫类·高蛋白", examples: ["干煸蚕蛹", "蚕蛹串", "蚕蛹煎蛋"], color: "#6b4f3c" },
+                { name: "燕麦", emoji: "🌾", category: "谷物·健康", examples: ["燕麦粥", "燕麦饼干", "燕麦奶"], color: "#c4a775" },
+                { name: "藜麦", emoji: "🍚", category: "谷物·超级", examples: ["藜麦沙拉", "藜麦饭", "藜麦寿司"], color: "#ddb892" }
+            ];
+
+            // DOM 元素
+            const cardEmoji = document.getElementById('cardEmoji');
+            const foodName = document.getElementById('foodName');
+            const exampleFood = document.getElementById('exampleFood');
+            const categoryTag = document.getElementById('categoryTag');
+            const drawButton = document.getElementById('drawButton');
+            const cardArea = document.getElementById('cardArea');
+
+            // 当前显示的食材
+            let currentIngredient = null;
+
+            // 随机抽取食材
+            function getRandomIngredient() {
+                const randomIndex = Math.floor(Math.random() * ingredients.length);
+                return ingredients[randomIndex];
+            }
+
+            // 更新界面
+            function updateUI(ingredient) {
+                if (!ingredient) return;
+
+                cardEmoji.textContent = ingredient.emoji;
+                foodName.textContent = ingredient.name;
+                
+                // 随机挑选一个代表食物（从examples中取第一个或随机）
+                const randomExample = ingredient.examples[Math.floor(Math.random() * ingredient.examples.length)];
+                exampleFood.textContent = randomExample;
+                
+                categoryTag.textContent = `🏷️ ${ingredient.category}`;
+                
+                // 轻微改变卡片背景色调 (通过内联样式稍微调整，保留原风格)
+                if (ingredient.color) {
+                    cardArea.style.boxShadow = `inset 0 0 35px rgba(0,0,0,0.35), 0 24px 35px rgba(0,0,0,0.7), 0 0 0 6px #caa87b, 0 0 0 10px ${ingredient.color}40`;
+                } else {
+                    cardArea.style.boxShadow = `inset 0 0 30px rgba(0,0,0,0.3), 0 24px 35px rgba(0,0,0,0.7), 0 0 0 6px #caa87b, 0 0 0 10px #4d3820`;
+                }
+            }
+
+            // 执行抽牌动作
+            function drawCard() {
+                const newIngredient = getRandomIngredient();
+                currentIngredient = newIngredient;
+                updateUI(newIngredient);
+
+                // 添加一点触感反馈（按钮微小动画已通过css处理）
+                // 同时卡片短暂弹跳效果
+                cardArea.style.transform = 'scale(0.97)';
+                setTimeout(() => {
+                    cardArea.style.transform = 'scale(1)';
+                }, 120);
+            }
+
+            // 初始化：随机展示一个食材（不是空白）
+            function initializeRandomFood() {
+                const randomInit = getRandomIngredient();
+                currentIngredient = randomInit;
+                updateUI(randomInit);
+            }
+
+            // 事件绑定
+            drawButton.addEventListener('click', drawCard);
+            
+            // 点击卡片本身也可以抽牌 (更符合直觉)
+            cardArea.addEventListener('click', (e) => {
+                // 防止点到内部元素时触发多次，但这里简单调用抽牌
+                drawCard();
+            });
+
+            // 页面加载完成，直接显示一个随机食材
+            initializeRandomFood();
+
+            // 可选：键盘支持 (空格键抽牌)
+            window.addEventListener('keydown', (e) => {
+                if (e.code === 'Space' && document.activeElement === document.body) {
+                    e.preventDefault();
+                    drawCard();
+                }
+            });
+
+        })();
+    </script>
+</body>
+</html>
