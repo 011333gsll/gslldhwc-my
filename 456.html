@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>极简背景图工坊 | 20套同色系 · 干净百搭</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f4f7fc;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
+            padding: 2rem 1.5rem;
+            color: #1a2c3e;
+        }
+
+        /* 主容器 */
+        .app {
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        /* 控制栏 */
+        .toolbar {
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(8px);
+            border-radius: 2rem;
+            padding: 1.2rem 2rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.02), 0 1px 3px rgba(0,0,0,0.05);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 1.8rem;
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+
+        .ctrl {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+        .ctrl label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #4a5b6e;
+        }
+        input[type="color"] {
+            width: 64px;
+            height: 46px;
+            border: 1.5px solid #e2edf2;
+            border-radius: 18px;
+            cursor: pointer;
+            background: white;
+            padding: 4px;
+            transition: 0.2s;
+        }
+        .size-group {
+            display: flex;
+            gap: 0.6rem;
+            align-items: center;
+        }
+        .size-group input {
+            width: 110px;
+            padding: 0.55rem 0.9rem;
+            border-radius: 40px;
+            border: 1.5px solid #dce5ec;
+            font-weight: 500;
+            text-align: center;
+            background: white;
+            font-size: 0.9rem;
+        }
+        .size-group span {
+            font-weight: 500;
+            color: #3b5a78;
+        }
+        button {
+            background: #1f3b4c;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        button:hover {
+            background: #0f2c3b;
+            transform: translateY(-1px);
+        }
+        .badge {
+            background: #e9f0f5;
+            border-radius: 40px;
+            padding: 0.3rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #1f5e7e;
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 画廊 - 干净网格 */
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+            gap: 1.6rem;
+        }
+
+        /* 卡片样式极简 */
+        .bg-card {
+            background: #ffffffdd;
+            backdrop-filter: blur(2px);
+            border-radius: 1.8rem;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            box-shadow: 0 5px 12px rgba(0,0,0,0.03);
+            border: 1px solid rgba(255,255,255,0.7);
+        }
+        .bg-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 25px -12px rgba(0,0,0,0.1);
+        }
+
+        .preview {
+            background: #fefcf9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #eef3f8;
+        }
+        canvas {
+            display: block;
+            border-radius: 1.2rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            width: 100%;
+            height: auto;
+            background: #fff;
+        }
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 1rem 1rem 1rem;
+            background: white;
+        }
+        .card-footer span {
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #eff3f8;
+            padding: 0.2rem 0.9rem;
+            border-radius: 30px;
+            color: #2c4b66;
+        }
+        .download-single {
+            background: transparent;
+            border: 1px solid #cbdde9;
+            color: #2c5a74;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            box-shadow: none;
+        }
+        .download-single:hover {
+            background: #1f3b4c;
+            border-color: #1f3b4c;
+            color: white;
+        }
+        .footer-meta {
+            text-align: center;
+            margin-top: 3rem;
+            font-size: 0.75rem;
+            color: #6f8eaa;
+            border-top: 1px solid #dce9f0;
+            padding-top: 2rem;
+        }
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .badge { margin-left: 0; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="toolbar">
+        <div class="ctrl">
+            <label>🎨 主题色</label>
+            <input type="color" id="baseColor" value="#2f8bcb">
+        </div>
+        <div class="ctrl">
+            <label>📐 背景尺寸 (px)</label>
+            <div class="size-group">
+                <input type="number" id="widthInput" value="800" step="10" min="180" max="1600">
+                <span>✕</span>
+                <input type="number" id="heightInput" value="600" step="10" min="180" max="1200">
+            </div>
+        </div>
+        <button id="regenerateAll">✨ 刷新全部背景</button>
+        <div class="badge">
+            🧼 20款极简背景 · 柔和百搭
+        </div>
+    </div>
+
+    <div class="gallery" id="galleryContainer"></div>
+    <div class="footer-meta">
+        💡 所有背景均基于您的主色生成 (明度/饱和度微调 + 干净渐变/轻纹理) · 点击下载 PNG 原始尺寸
+    </div>
+</div>
+
+<script>
+    // ----------------------- 辅助函数：颜色操作（保持干净）------------------------
+    function hexToRgb(hex) {
+        let h = hex.startsWith('#') ? hex.slice(1) : hex;
+        if (h.length === 3) h = h.split('').map(c => c + c).join('');
+        const num = parseInt(h, 16);
+        return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+    }
+
+    function rgbToStyle(r, g, b, a = 1) {
+        return `rgba(${r}, ${g}, ${b}, ${a})`;
+    }
+
+    // 亮度微调 (delta 范围 -100 ~ 100)
+    function adjustLight(hex, percent) {
+        const rgb = hexToRgb(hex);
+        let r = Math.min(255, Math.max(0, rgb.r + rgb.r * (percent / 100)));
+        let g = Math.min(255, Math.max(0, rgb.g + rgb.g * (percent / 100)));
+        let b = Math.min(255, Math.max(0, rgb.b + rgb.b * (percent / 100)));
+        return `rgb(${Math.floor(r)}, ${Math.floor(g)}, ${Math.floor(b)})`;
+    }
+
+    // 饱和度/亮度调整，返回rgb字符串 (维持干净色系)
+    function shiftColor(hex, lightnessOffset = 0, satOffset = 0) {
+        // 简易版: 主要调亮/暗，同时做微对比，保持低饱和倾向（适合背景）
+        let rgb = hexToRgb(hex);
+        let r = rgb.r, g = rgb.g, b = rgb.b;
+        // 轻微亮度偏移 亮度偏移 percent
+        let factor = 1 + lightnessOffset / 100;
+        r = Math.min(255, Math.max(0, r * factor));
+        g = Math.min(255, Math.max(0, g * factor));
+        b = Math.min(255, Math.max(0, b * factor));
+        // 饱和度偏移简易处理：向灰色方向偏移
+        if (satOffset !== 0) {
+            const gray = (r + g + b) / 3;
+            const mix = satOffset > 0 ? 1 - (satOffset / 150) : 1 + Math.abs(satOffset) / 150;
+            r = r * (1 - mix) + gray * mix;
+            g = g * (1 - mix) + gray * mix;
+            b = b * (1 - mix) + gray * mix;
+            r = Math.min(255, Math.max(0, r));
+            g = Math.min(255, Math.max(0, g));
+            b = Math.min(255, Math.max(0, b));
+        }
+        return `rgb(${Math.floor(r)}, ${Math.floor(g)}, ${Math.floor(b)})`;
+    }
+
+    // ---------- 20个极度简洁的背景绘制函数（纯色／线性渐变／径向渐变／柔和网纹/极细微纹理）--------
+    // 确保每一张都干净、通透、不过分花哨，适合作为成套背景图
+    const simplePatterns = [];
+
+    // 1. 纯色基底 (主色)
+    simplePatterns.push((ctx, w, h, mainColor) => {
+        ctx.fillStyle = mainColor;
+        ctx.fillRect(0, 0, w, h);
+    });
+
+    // 2. 明亮淡雅 (主色+15%亮度)
+    simplePatterns.push((ctx, w, h, mainColor) => {
+        ctx.fillStyle = adjustLight(mainColor, 15);
+        ctx.fillRect(0, 0, w, h);
+    });
+
+    // 3. 温柔低饱和 (降低饱和度 20% + 亮度微提)
+    simplePatterns.push((ctx, w, h, mainColor) => {
+        ctx.fillStyle = shiftColor(mainColor, 8, -22);
+        ctx.fillRect(0, 0, w, h);
+    });
+
+    // 4. 线性渐变 → 水平方向 (主色 -> 提亮20%)
+    simplePatterns.push((ctx, w, h, mainColor) => {
+        const light = adjustLight(mainColor, 22);
+        const grad = ctx.createLinearGradient(0, 0, w, 0);
+        grad.addColorStop(0, mainColor);
+        grad.addColorStop(1, light);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+    });
+
+    // 5. 垂直渐变 (主色 -> 微暗)
+    simplePatterns.push((ctx, w, h, mainColor) => {
+        const dark = adjustLight(mainColor, -12);
+        const grad = ctx.createLinearGradient(0, 0, 0, h);
+        grad.addColorStop(0, mainColor);
+        grad.addColorStop(1, dark);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+    });
+
+    // 6. 对角渐变 (柔和)
+    simplePatterns.push((ctx, w, h, mainColor) => {
+        const light = adjustLight(mainColor, 18);
+        const grad = ctx.createLinearGradient(0, 0, w, h);
+        grad.addColorStop(0, mainColor);
+        grad.addColorStop(1, light);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+    });
+
+    // 7. 径向渐变 (中心亮 边缘暗)
+    simplePatterns.push((ctx, w, h, mainColor) => {
+        const centerX = w / 2;
+        const centerY = h / 2;
+        const radius = Math.max(w, h) * 0.7;
+        const grad = ctx.createRadialGradient(centerX, centerY, 10, centerX, centerY, radius);
+        grad.addColorStop(0, adjustLight(mainColor, 28));
+        grad.addColorStop(1, mainColor);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+    });
+
+    // 8. 柔光晕影 (反径向: 边缘提亮，中间主色)
+    simplePatterns.push((ctx, w, h, mainColor) => {
+        const centerX = w / 2;
+        const centerY = h / 2;
+        const grad = ctx.createRadialGradient(centerX, centerY, w * 0.2, centerX, centerY, w * 0.8);
+        grad.addColorStop(0, mainColor);
+        grad.addColorStop(1, adjustLight(mainColor, 22));
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+    });
+
+    // 9. 极细横纹 (透明度极低，几乎不可见但增添层次)
+    simplePatterns.push((ctx, w, h, mainColor) => {
+        ctx.fillStyle = mainColor;
+        ctx.fillRect(0, 0, w, h);
+        const lineColor = adjustLight(mainColor, 32);
+        ctx.fillStyle = lineColor;
+        const step = 18;
+        for (let y = 0; y < h; y += step) {
+            ctx.fillRect(0, y, w, 1);
+        }
+    });
+
+    // 10. 极细竖纹 (干净)
+    simplePatterns.push((ctx, w, h, mainColor) => {
+        ctx.fillStyle = mainColor;
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = adjustLight(mainColor, 28);
+        const step = 20;
+        for (let x = 0; x < w; x += step) {
+            ctx.fillRect(x, 0, 1, h);
+        }
+    });
+
+    // 11. 轻柔点阵 (半透明点，非常低调)
+    simplePatterns.push((ctx, w, h, mainColor) => {
+        ctx.fillStyle = mainColor;
+        ctx.fillRect(0, 0, w, h);
+        const dotColor = adjustLight(mainColor, 40);
+        ctx.fillStyle = dotColor;
+        const spacing = 32;
+        for (let x = spacing / 2; x < w; x += spacing) {
+            for (let y = spacing / 2; y < h; y += spacing) {
+                ctx.beginPath();
+                ctx.arc(x, y, 1.8, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    });
+
+    // 12. 极简网格线 (线宽0.8，柔和色)
+    simplePatterns.push((ctx, w, h, mainColor) => {
+        ctx.fillStyle = mainColor;
+        ctx.fillRect(0, 0, w, h);
+        ctx.strokeStyle = adjustLight(mainColor, 38);
+        ctx.lineWidth = 0.8;
+        const step = 36;
+        for (let i = step; i < w; i += step) {
+            ctx.beginPath();
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i, h);
+            ctx.stroke();
+        }
+        for (let i = step; i < h; i += step) {
+            ctx.beginPath();
+            ctx.moveTo(0, i);
+            ctx.lineTo(w, i);
+            ctx.stroke();
+        }
+    });
+
+    // 13. 磨砂轻噪点 (极低透明度)
+    simplePatterns.push((ctx, w, h, mainColor) => {
+        ctx.fillStyle = mainColor;
+        ctx.fillRect(0, 0, w, h);
+        for (let i = 0; i < 1200; i++) {
+            const x = Math.random() * w;
+            const y = Math.random() * h;
+            ctx.fillStyle = `rgba(255,255,245,${Math.random() * 0.12})`;
+            ctx.fillRect(x, y, 1.2, 1.2);
+        }
+    });
+
+    // 14. 对角柔光晕染 (两个渐变压层)
+    simplePatterns.push((ctx, w, h, mainColor) => {
+        ctx.fillStyle = mainColor;
+        ctx.fillRect(0, 0, w, h);
+        const grad = ctx.createLinearGradient(0, 0, w * 0.6, h * 0.6);
+        grad.addColorStop(0, `rgba(255,255,245,0.25)`);
+        grad.addColorStop(1, `rgba(0,0,0,0.05)`);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+    });
+
+    // 15. 双层渐变 (从上到下 + 从左到右淡叠)
+    simplePatterns.push((ctx, w, h, mainColor) => {
+        const grad1 = ctx.createLinearGradient(0, 0, 0, h);
+        grad1.addColorStop(0, adjustLight(mainColor, 16));
+        grad1.addColorStop(1, adjustLight(mainColor, -8));
+        ctx.fillStyle = grad1;
+        ctx.fillRect(0, 0, w, h);
+        const grad2 = ctx.createLinearGradient(0, 0, w, 0);
+        grad2.addColorStop(0, `rgba(255,255,240,0.12)`);
+        grad2.addColorStop(1, `rgba(0,0,0,0.05)`);
+        ctx.fillStyle = grad2;
+        ctx.fillRect(0, 0, w, h);
+    });
+
+    // 16. 细斜纹 (极浅 角度30°)
+    simplePatterns.push((ctx, w, h, mainColor) => {
+        ctx.fillStyle = mainColor;
+        ctx.fillRect(0, 0, w, h);
+        ctx.save();
+        ctx.globalAlpha = 0.2;
+        ctx.strokeStyle = adjustLight(mainColor, 48);
+        ctx.lineWidth = 1.2;
+        const spacing = 22;
+        for (let d = -h; d < w + h; d += spacing) {
+            ctx.beginPath();
+            ctx.moveTo(d, 0);
+            ctx.lineTo(d + h * 0.5, h);
+            ctx.stroke();
+        }
+        ctx.restore();
+    });
+
+    // 17. 边缘微光 (四周渐变柔和)
+    simplePatterns.push((ctx, w, h, mainColor) => {
+        ctx.fillStyle = mainColor;
+        ctx.fillRect(0, 0, w, h);
+        const grad = ctx.createLinearGradient(0, 0, w, h);
+        grad.addColorStop(0, `rgba(255,245,225,0.18)`);
+        grad.addColorStop(1, `rgba(0,0,0,0.05)`);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+        const grad2 = ctx.createLinearGradient(w, 0, 0, h);
+        grad2.addColorStop(0, `rgba(255,250,210,0.1)`);
+        ctx.fillStyle = grad2;
+        ctx.fillRect(0, 0, w, h);
+    });
+
+    // 18. 柔雾层 (大范围半透明圆形)
+    simplePatterns.push((ctx, w, h, mainColor) => {
+        ctx.fillStyle = mainColor;
+        ctx.fillRect(0, 0, w, h);
+        for (let i = 0; i < 5; i++) {
+            ctx.beginPath();
+            ctx.arc(w * Math.random(), h * Math.random(), Math.min(w, h) * 0.3, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 248, 230, 0.08)`;
+            ctx.fill();
+        }
+    });
+
+    // 19. 细腻半透明横条波纹 (干净)
+    simplePatterns.push((ctx, w, h, mainColor) => {
+        ctx.fillStyle = mainColor;
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = adjustLight(mainColor, 42);
+        ctx.globalAlpha = 0.22;
+        for (let y = 0; y < h; y += 24) {
+            ctx.fillRect(0, y, w, 4);
+        }
+        ctx.globalAlpha = 1;
+    });
+
+    // 20. 极简渐变点阵组合 (低调)
+    simplePatterns.push((ctx, w, h, mainColor) => {
+        const grad = ctx.createLinearGradient(0, 0, w, h);
+        grad.addColorStop(0, mainColor);
+        grad.addColorStop(1, adjustLight(mainColor, 18));
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = adjustLight(mainColor, 45);
+        ctx.globalAlpha = 0.28;
+        const step = 28;
+        for (let x = step; x < w; x += step) {
+            for (let y = step; y < h; y += step) {
+                ctx.fillRect(x - 1.5, y - 1.5, 3, 3);
+            }
+        }
+        ctx.globalAlpha = 1;
+    });
+
+    // 确认20个图案
+    console.assert(simplePatterns.length === 20, "必须有20种简约背景");
+
+    // 友好命名 (简单直观)
+    const patternTitles = [
+        "纯色基底", "明亮淡色", "低饱和柔雾", "水平渐层", "垂直渐层",
+        "对角渐变", "径向光晕", "柔边晕影", "极细横纹", "极细竖纹",
+        "轻柔点阵", "网格肌理", "磨砂微噪", "对角柔光", "双层渐变",
+        "浅斜纹路", "边缘辉光", "柔雾光斑", "半透横波", "渐变微点"
+    ];
+
+    // ---------- DOM 元素绑定和渲染引擎 ----------
+    const galleryEl = document.getElementById('galleryContainer');
+    const colorInput = document.getElementById('baseColor');
+    const widthInput = document.getElementById('widthInput');
+    const heightInput = document.getElementById('heightInput');
+    const refreshBtn = document.getElementById('regenerateAll');
+
+    let currentItems = []; // 存储每个卡片对应的canvas元素和索引
+
+    // 构建卡片占位
+    function buildGalleryStructure() {
+        galleryEl.innerHTML = '';
+        currentItems = [];
+        for (let i = 0; i < simplePatterns.length; i++) {
+            const card = document.createElement('div');
+            card.className = 'bg-card';
+            const previewDiv = document.createElement('div');
+            previewDiv.className = 'preview';
+            const canvas = document.createElement('canvas');
+            canvas.className = 'bg-canvas';
+            const footer = document.createElement('div');
+            footer.className = 'card-footer';
+            const titleSpan = document.createElement('span');
+            titleSpan.innerText = patternTitles[i] || `背景 ${i+1}`;
+            const downloadBtn = document.createElement('button');
+            downloadBtn.innerText = '⬇ PNG';
+            downloadBtn.className = 'download-single';
+            // 绑定下载事件 (需要保留canvas引用)
+            downloadBtn.addEventListener('click', (function(cv, idxTitle) {
+                return function() {
+                    const link = document.createElement('a');
+                    const safeName = `bg_${idxTitle.replace(/\s/g, '_')}_${Date.now()}.png`;
+                    link.download = safeName;
+                    link.href = cv.toDataURL('image/png');
+                    link.click();
+                };
+            })(canvas, patternTitles[i]));
+            footer.appendChild(titleSpan);
+            footer.appendChild(downloadBtn);
+            previewDiv.appendChild(canvas);
+            card.appendChild(previewDiv);
+            card.appendChild(footer);
+            galleryEl.appendChild(card);
+            currentItems.push({ canvas, index: i });
+        }
+    }
+
+    // 核心绘制函数 (根据当前尺寸/主色渲染所有背景)
+    function renderAllPatterns() {
+        const mainColor = colorInput.value;
+        let width = parseInt(widthInput.value, 10);
+        let height = parseInt(heightInput.value, 10);
+        if (isNaN(width) || width < 30) width = 800;
+        if (isNaN(height) || height < 30) height = 600;
+        width = Math.min(1600, Math.max(120, width));
+        height = Math.min(1200, Math.max(120, height));
+        widthInput.value = width;
+        heightInput.value = height;
+
+        for (let item of currentItems) {
+            const { canvas, index } = item;
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, width, height);
+            try {
+                simplePatterns[index](ctx, width, height, mainColor);
+            } catch(e) {
+                console.warn(`绘制索引${index}出错`, e);
+                ctx.fillStyle = mainColor;
+                ctx.fillRect(0, 0, width, height);
+            }
+        }
+    }
+
+    // 尺寸或主色变化触发刷新
+    function handleUpdate() {
+        renderAllPatterns();
+    }
+
+    // 初始化
+    function init() {
+        buildGalleryStructure();
+        renderAllPatterns();
+        colorInput.addEventListener('input', () => renderAllPatterns());
+        widthInput.addEventListener('change', () => renderAllPatterns());
+        heightInput.addEventListener('change', () => renderAllPatterns());
+        refreshBtn.addEventListener('click', () => renderAllPatterns());
+        // 可选：窗口尺寸改变不影响画布内容，但无影响
+    }
+    init();
+</script>
+</body>
+</html>
